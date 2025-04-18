@@ -2,6 +2,7 @@
 session_start();
 if (isset($_SESSION['unique_id'])) {
     include_once "config.php";
+
     $outgoing_id = mysqli_real_escape_string($conn, $_POST['outgoing_id']);
     $incomming_id = mysqli_real_escape_string($conn, $_POST['incomming_id']);
     $message = mysqli_real_escape_string($conn, $_POST['message']);
@@ -16,10 +17,22 @@ if (isset($_SESSION['unique_id'])) {
         return openssl_decrypt($encrypted_data, 'aes-256-cbc', $encryption_key, 0, $iv);
     }
 
+    // ✅ Step 2: Mark incoming messages as read
+    $mark_read = "
+        UPDATE messages 
+        SET is_read = 1 
+        WHERE outgoing_msg_id = {$incomming_id} 
+          AND incomming_msg_id = {$outgoing_id}
+          AND is_read = 0
+    ";
+    mysqli_query($conn, $mark_read);
+
+    // ✅ Get messages between users
     $sql = "SELECT * FROM messages
             LEFT JOIN users ON users.unique_id = messages.outgoing_msg_id
             WHERE (outgoing_msg_id = {$outgoing_id} AND incomming_msg_id = {$incomming_id})
-            OR (outgoing_msg_id = {$incomming_id} AND incomming_msg_id = {$outgoing_id}) ORDER BY msg_id";
+               OR (outgoing_msg_id = {$incomming_id} AND incomming_msg_id = {$outgoing_id})
+            ORDER BY msg_id";
 
     $query = mysqli_query($conn, $sql);
 
@@ -32,24 +45,24 @@ if (isset($_SESSION['unique_id'])) {
             $isSender = $row['outgoing_msg_id'] === $outgoing_id;
             $direction = $isSender ? 'outgoing' : 'incoming';
 
-            // Skip sender-deleted messages
+            // ❌ Skip if sender deleted and viewing user is sender
             if ($row['deleted'] === 'sender' && $isSender) continue;
 
             $output .= '<div class="chat ' . $direction . '">';
 
-            // Incoming profile pic for text-only messages
+            // 👤 Show profile image for incoming text-only messages
             if (!$isSender && $msg && !$pic && $row['deleted'] !== 'both') {
                 $output .= '<img src="php/images/' . $row['img'] . '" alt="" class="profile-pic">';
             }
 
             $output .= '<div class="details" data-id="' . $row['msg_id'] . '">';
 
-            // 🗑️ Show delete icon only for sender and if not deleted
+            // 🗑️ Delete icon for sender only if not deleted
             if ($isSender && $row['deleted'] === 'none') {
-                $output .= '<span class="delete-msg" title="Verwijder">🗑️</span>';
+                $output .= '<span class="delete-msg" title="Verwijder"><i class="fas fa-trash-alt"></i></span>';
             }
 
-            // Show deleted placeholder or real message
+            // ❕ Show placeholder if deleted for both
             if ($row['deleted'] === 'both') {
                 $output .= '<div><p><em>Dit bericht is verwijderd</em></p></div>';
             } else {
