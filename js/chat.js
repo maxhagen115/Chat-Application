@@ -141,3 +141,70 @@ function lazyLoadImages() {
 document.addEventListener("DOMContentLoaded", () => {
   lazyLoadImages();
 });
+
+// images navigation
+
+let images = []; // all chat images
+let currentIndex = -1;
+
+const modal = document.getElementById("imageModal");
+const modalImg = document.getElementById("enlargedImage");
+const downloadBtn = document.getElementById("downloadImage");
+const prevBtn = document.getElementById("prevImage");
+const nextBtn = document.getElementById("nextImage");
+
+// Open modal and store index
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("chat-image")) {
+    images = Array.from(document.querySelectorAll(".chat-image"));
+    currentIndex = images.indexOf(e.target);
+    openImage(images[currentIndex]);
+  }
+});
+
+function openImage(img) {
+  const src = img.getAttribute("src");
+  modal.classList.remove("hidden");
+  modalImg.src = src;
+  downloadBtn.href = src;
+
+  updateNavButtons();
+}
+
+function showImage(direction) {
+  if (images.length === 0) return;
+
+  const newIndex = currentIndex + direction;
+
+  // Stop navigation if out of bounds
+  if (newIndex < 0 || newIndex >= images.length) return;
+
+  currentIndex = newIndex;
+  openImage(images[currentIndex]);
+}
+
+function updateNavButtons() {
+  // Disable or hide nav buttons if at bounds
+  prevBtn.style.display = currentIndex <= 0 ? "none" : "block";
+  nextBtn.style.display = currentIndex >= images.length - 1 ? "none" : "block";
+}
+
+prevBtn.addEventListener("click", () => showImage(-1));
+nextBtn.addEventListener("click", () => showImage(1));
+
+// Close on outside click or ESC
+modal.addEventListener("click", (e) => {
+  if (e.target === modal) {
+    modal.classList.add("hidden");
+    modalImg.src = "";
+    downloadBtn.href = "#";
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (!modal.classList.contains("hidden")) {
+    if (e.key === "ArrowRight") showImage(1);
+    if (e.key === "ArrowLeft") showImage(-1);
+    if (e.key === "Escape") modal.classList.add("hidden");
+  }
+});

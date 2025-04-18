@@ -531,6 +531,28 @@ body.active {
   background: #fff;
 }
 
+.image-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 32px;
+  color: white;
+  background: rgba(0, 0, 0, 0.3);
+  border: none;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 50%;
+  z-index: 1001;
+}
+
+.image-nav.left {
+  left: -60px;
+}
+
+.image-nav.right {
+  right: -60px;
+}
+
 .download-btn {
   position: absolute;
   top: 12px;

@@ -90,15 +90,22 @@ if (!isset($_SESSION['unique_id'])) {
   </div>
 
   <div id="imageModal" class="image-modal hidden">
-    <div class="image-wrapper">
-      <img id="enlargedImage" src="" alt="Chat Image">
-      <a id="downloadImage" href="#" download class="download-btn" title="Download">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12 16L8 12h3V4h2v8h3l-4 4zm-8 2v2h16v-2H4z" />
-        </svg>
-      </a>
-    </div>
+  <div class="image-wrapper">
+    <img id="enlargedImage" src="" alt="Chat Image" />
+    
+    <!-- Navigation arrows -->
+    <button id="prevImage" class="image-nav left">&#10094;</button>
+    <button id="nextImage" class="image-nav right">&#10095;</button>
+
+    <!-- Download button -->
+    <a id="downloadImage" href="#" download class="download-btn" title="Download">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 16L8 12h3V4h2v8h3l-4 4zm-8 2v2h16v-2H4z" />
+      </svg>
+    </a>
   </div>
+</div>
+
 
   <div id="deleteModal" class="modal hidden">
     <div class="modal-content">
