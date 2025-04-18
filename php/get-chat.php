@@ -11,11 +11,8 @@ if (isset($_SESSION['unique_id'])) {
 
     function decryptthis($data, $key)
     {
-
         $encryption_key = base64_decode($key);
-
         list($encrypted_data, $iv) = array_pad(explode('::', base64_decode($data), 2), 2, null);
-
         return openssl_decrypt($encrypted_data, 'aes-256-cbc', $encryption_key, 0, $iv);
     }
 
@@ -30,35 +27,31 @@ if (isset($_SESSION['unique_id'])) {
         while ($row = mysqli_fetch_assoc($query)) {
             $msg = $row['msg'];
             $pic = $row['msg_img'];
-            $dec = decryptthis($msg, $key);
-            if ($row['outgoing_msg_id'] === $outgoing_id) {
+            $dec = $msg ? decryptthis($msg, $key) : "";
 
-                if ($row['msg'] && $row['msg_img'] == NULL) {
-                    $output .= '<div class="chat outgoing">
-                    <div class="details">
-                        <p>' . $dec . '</p>
-                    </div>
-                    </div>';
-                }
+            $isSender = $row['outgoing_msg_id'] === $outgoing_id;
+            $direction = $isSender ? 'outgoing' : 'incoming';
 
-                if ($row['msg_img'] && $row['msg'] == NULL) {
-                    $output .= '<div class="chat outgoing">
-                    <div class="details">
-                        <img src="php/images/user_msg_img/' . $pic . '">
-                    </div>
-                    </div>';
-                }
-            } else {
-                $output .= '<div class="chat incomming">
-                            <img src="php/images/' . $row['img'] . '" alt="">
-                            <div class="details">
-                                <p>' . $dec . '</p>
-                            </div>
-                            </div>';
+            $output .= '<div class="chat ' . $direction . '">';
+
+            // Show profile picture for incoming text only
+            if (!$isSender && $msg && !$pic) {
+                $output .= '<img src="php/images/' . $row['img'] . '" alt="" class="profile-pic">';
             }
+
+            $output .= '<div class="details">';
+            
+            if ($pic && !$msg) {
+                $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image"></div>';
+            } elseif ($msg && !$pic) {
+                $output .= '<div><p>' . $dec . '</p></div>';
+            }
+
+            $output .= '</div></div>';
         }
+
         echo $output;
     }
 } else {
-    header("../login.php");
+    header("location: ../login.php");
 }
