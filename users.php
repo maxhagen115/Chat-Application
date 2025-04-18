@@ -20,7 +20,10 @@ if (!isset($_SESSION['unique_id'])) {
         }
         ?>
         <div class="content">
-          <img src="php/images/<?= $row['img'] ?>" alt="" />
+          <img class="profile-pic" onclick="enlargeImg()" id="profile_img" src="php/images/<?= $row['img'] ?> " />
+          <div id="reset_btn" style="display:none;">
+            <button class="reset_img" onclick="resetImg()">Verberg</button>
+          </div>
           <div class="details">
             <span><?= $row['fname'] . " " . $row['lname'] ?></span><br>
             <a href="php/change_status.php" class="status"><?= $row['status'] ?></a>
@@ -40,6 +43,35 @@ if (!isset($_SESSION['unique_id'])) {
   </div>
 
   <script src="js/users.js"></script>
+
+  <script>
+    img = document.getElementById("profile_img");
+
+    function enlargeImg() {
+      const img = document.getElementById("profile_img");
+      const resetBtn = document.getElementById("reset_btn");
+
+      img.style.transform = "scale(4)";
+      img.style.transition = "transform 0.25s ease";
+      img.style.zIndex = "1001";
+      img.style.position = "relative";
+
+      resetBtn.style.display = "block";
+      resetBtn.style.zIndex = "1002";
+      resetBtn.style.position = "relative";
+    }
+
+    function resetImg() {
+      const img = document.getElementById("profile_img");
+      const resetBtn = document.getElementById("reset_btn");
+
+      img.style.transform = "scale(1)";
+      img.style.transition = "transform 0.25s ease";
+      img.style.zIndex = "1";
+
+      resetBtn.style.display = "none";
+    }
+  </script>
 </body>
 
 </html>

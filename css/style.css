@@ -456,7 +456,7 @@ body.active {
 }
 
 .reset_img {
-  background-color: #3d4451;
+  background-color: var(--primary-color);
   color: #ffffff;
   padding: 8px 16px;
   font-size: 16px;
