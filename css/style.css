@@ -659,3 +659,16 @@ body.active {
 .status-dot {
   position: relative;
 }
+
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+img {
+  opacity: 1; /* fallback */
+}

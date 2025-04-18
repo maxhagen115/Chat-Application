@@ -52,7 +52,7 @@ if (isset($_SESSION['unique_id'])) {
 
             // 👤 Show profile image for incoming text-only messages
             if (!$isSender && $msg && !$pic && $row['deleted'] !== 'both') {
-                $output .= '<img src="php/images/' . $row['img'] . '" alt="" class="profile-pic">';
+                $output .= '<img src="php/images/' . $row['img'] . '" alt="" class="profile-pic" loading="lazy">';
             }
 
             $output .= '<div class="details" data-id="' . $row['msg_id'] . '">';
@@ -67,7 +67,7 @@ if (isset($_SESSION['unique_id'])) {
                 $output .= '<div><p><em>Dit bericht is verwijderd</em></p></div>';
             } else {
                 if ($pic && !$msg) {
-                    $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image"></div>';
+                    $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image" loading="lazy"></div>';
                 } elseif ($msg && !$pic) {
                     $output .= '<div><p>' . $dec . '</p></div>';
                 }

@@ -16,7 +16,9 @@ sendBtn.onclick = () => {
   xhr.onload = () => {
     if (xhr.readyState === XMLHttpRequest.DONE) {
       if (xhr.status === 200) {
-        (inputField.value = ""), (msg.style.display = 'block'), (file_name.remove());
+        inputField.value = "";
+        msg.style.display = "block";
+        file_name.remove();
       }
     }
   };
@@ -39,6 +41,10 @@ setInterval(() => {
       if (xhr.status === 200) {
         let data = xhr.response;
         chatBox.innerHTML = data;
+
+        // ✅ Run lazy loader AFTER content is replaced
+        lazyLoadImages();
+
         if (!chatBox.classList.contains("active")) {
           scrollToBottom();
         }
@@ -62,7 +68,6 @@ messageInput.addEventListener("input", () => {
   clearTimeout(typingTimer);
   updateTypingStatus(true);
 
-  // Set timeout to stop typing after 2 seconds of inactivity
   typingTimer = setTimeout(() => {
     updateTypingStatus(false);
   }, 2000);
@@ -82,20 +87,17 @@ let selectedMsgId = null;
 document.addEventListener("click", function (e) {
   const modal = document.getElementById("deleteModal");
 
-  // 🧤 Show modal when delete icon is clicked
   if (e.target.classList.contains("delete-msg")) {
     const msgDiv = e.target.closest(".details");
     selectedMsgId = msgDiv?.getAttribute("data-id");
     modal.classList.remove("hidden");
   }
 
-  // ❌ Close modal
   if (e.target.classList.contains("modal-cancel") || e.target.id === "deleteModal") {
     modal.classList.add("hidden");
     selectedMsgId = null;
   }
 
-  // 🗑️ Handle delete action
   if (e.target.classList.contains("modal-btn")) {
     const deleteFor = e.target.getAttribute("data-action");
 
@@ -111,7 +113,7 @@ document.addEventListener("click", function (e) {
           if (deleteFor === "both") {
             msgDiv.innerHTML = '<div><p><em>Dit bericht is verwijderd</em></p></div>';
           } else {
-            msgDiv.parentElement.remove(); // remove full .chat
+            msgDiv.parentElement.remove();
           }
         }
 
@@ -121,4 +123,21 @@ document.addEventListener("click", function (e) {
   }
 });
 
+// ✅ Lazy loading images (only after they load or complete)
+function lazyLoadImages() {
+  const lazyImages = document.querySelectorAll('img[loading="lazy"]:not(.loaded)');
+  lazyImages.forEach(img => {
+    if (img.complete) {
+      img.classList.add("loaded");
+    } else {
+      img.addEventListener("load", () => {
+        img.classList.add("loaded");
+      });
+    }
+  });
+}
 
+// ✅ Run once on initial load
+document.addEventListener("DOMContentLoaded", () => {
+  lazyLoadImages();
+});
