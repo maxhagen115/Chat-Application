@@ -32,22 +32,36 @@ if (isset($_SESSION['unique_id'])) {
             $isSender = $row['outgoing_msg_id'] === $outgoing_id;
             $direction = $isSender ? 'outgoing' : 'incoming';
 
+            // Skip sender-deleted messages
+            if ($row['deleted'] === 'sender' && $isSender) continue;
+
             $output .= '<div class="chat ' . $direction . '">';
 
-            // Show profile picture for incoming text only
-            if (!$isSender && $msg && !$pic) {
+            // Incoming profile pic for text-only messages
+            if (!$isSender && $msg && !$pic && $row['deleted'] !== 'both') {
                 $output .= '<img src="php/images/' . $row['img'] . '" alt="" class="profile-pic">';
             }
 
-            $output .= '<div class="details">';
-            
-            if ($pic && !$msg) {
-                $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image"></div>';
-            } elseif ($msg && !$pic) {
-                $output .= '<div><p>' . $dec . '</p></div>';
+            $output .= '<div class="details" data-id="' . $row['msg_id'] . '">';
+
+            // 🗑️ Show delete icon only for sender and if not deleted
+            if ($isSender && $row['deleted'] === 'none') {
+                $output .= '<span class="delete-msg" title="Verwijder">🗑️</span>';
             }
 
-            $output .= '</div></div>';
+            // Show deleted placeholder or real message
+            if ($row['deleted'] === 'both') {
+                $output .= '<div><p><em>Dit bericht is verwijderd</em></p></div>';
+            } else {
+                if ($pic && !$msg) {
+                    $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image"></div>';
+                } elseif ($msg && !$pic) {
+                    $output .= '<div><p>' . $dec . '</p></div>';
+                }
+            }
+
+            $output .= '</div>'; // .details
+            $output .= '</div>'; // .chat
         }
 
         echo $output;

@@ -100,6 +100,15 @@ if (!isset($_SESSION['unique_id'])) {
     </div>
   </div>
 
+  <div id="deleteModal" class="modal hidden">
+    <div class="modal-content">
+      <p class="modal-title">Bericht verwijderen</p>
+      <button class="modal-btn" data-action="sender">Verwijder voor mij</button>
+      <button class="modal-btn" data-action="both">Verwijder voor iedereen</button>
+      <button class="modal-cancel">Annuleren</button>
+    </div>
+  </div>
+
   <script>
     const typingStatus = document.getElementById("typing-status");
     const incomming_id = <?= $user_id ?>;
