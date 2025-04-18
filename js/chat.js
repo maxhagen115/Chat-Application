@@ -5,7 +5,7 @@ const form = document.querySelector(".typing-area"),
   chatBox = document.querySelector(".chat-box"),
   msg = document.getElementById("msg"),
   file_name = document.querySelector("#file-name");
-  
+
 form.onsubmit = (e) => {
   e.preventDefault();
 };
@@ -51,4 +51,26 @@ setInterval(() => {
 
 function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// user is typing
+const messageInput = document.querySelector("#msg");
+
+let typingTimer;
+
+messageInput.addEventListener("input", () => {
+  clearTimeout(typingTimer);
+  updateTypingStatus(true);
+
+  // Set timeout to stop typing after 2 seconds of inactivity
+  typingTimer = setTimeout(() => {
+    updateTypingStatus(false);
+  }, 2000);
+});
+
+function updateTypingStatus(isTyping) {
+  let xhr = new XMLHttpRequest();
+  xhr.open("POST", "php/typing.php", true);
+  xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhr.send("typing_to=" + (isTyping ? incomming_id : ""));
 }

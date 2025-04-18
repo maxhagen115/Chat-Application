@@ -30,32 +30,33 @@ if (!isset($_SESSION['unique_id'])) {
 
         <div class="details">
           <span><?= $row['fname'] . " " . $row['lname'] ?></span>
-          <?php
-          if ($row['status'] == 'Actief') {
-            echo "<p>Actief</p>";
-          } else {
-            $lastOnline = new DateTime($row['last_online']);
-            $now = new DateTime();
-
-            if ($lastOnline->format('Y-m-d') == $now->format('Y-m-d')) {
-              // Vandaag: alleen tijd
-              $seen = $lastOnline->format('H:i');
+          <p id="typing-status">
+            <?php
+            if ($row['status'] == 'Actief') {
+              echo "Actief";
             } else {
-              // Eerder: dag + maandnaam in het Nederlands zonder jaar
-              $formatter = new IntlDateFormatter(
-                'nl_NL',
-                IntlDateFormatter::NONE,
-                IntlDateFormatter::NONE,
-                'Europe/Amsterdam',
-                IntlDateFormatter::GREGORIAN,
-                'd MMMM' // e.g. "17 april"
-              );
-              $seen = $formatter->format($lastOnline);
-            }
+              $lastOnline = new DateTime($row['last_online']);
+              $now = new DateTime();
 
-            echo "<p>{$row['status']}. Voor het laatst gezien op {$seen}</p>";
-          }
-          ?>
+              if ($lastOnline->format('Y-m-d') == $now->format('Y-m-d')) {
+                $seen = $lastOnline->format('H:i');
+              } else {
+                $formatter = new IntlDateFormatter(
+                  'nl_NL',
+                  IntlDateFormatter::NONE,
+                  IntlDateFormatter::NONE,
+                  'Europe/Amsterdam',
+                  IntlDateFormatter::GREGORIAN,
+                  'd MMMM'
+                );
+                $seen = $formatter->format($lastOnline);
+              }
+
+              echo "{$row['status']}. Voor het laatst gezien op {$seen}";
+            }
+            ?>
+          </p>
+
 
         </div>
       </header>
@@ -98,6 +99,23 @@ if (!isset($_SESSION['unique_id'])) {
       </a>
     </div>
   </div>
+
+  <script>
+    const typingStatus = document.getElementById("typing-status");
+    const incomming_id = <?= $user_id ?>;
+
+    setInterval(() => {
+      let xhr = new XMLHttpRequest();
+      xhr.open("POST", "php/check_typing.php", true);
+      xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+      xhr.onload = () => {
+        if (xhr.status === 200) {
+          typingStatus.textContent = xhr.responseText;
+        }
+      };
+      xhr.send("user_id=" + incomming_id);
+    }, 1000); // Check every 1 second
+  </script>
 
   <script src="js/chat.js"></script>
 
