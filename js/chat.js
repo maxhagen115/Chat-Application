@@ -5,13 +5,15 @@ const form = document.querySelector(".typing-area"),
   chatBox = document.querySelector(".chat-box"),
   msg = document.getElementById("msg"),
   file_name = document.querySelector("#file-name");
+
 let isEditingMessage = false;
+let currentlyEditingId = null;
+let chatRefreshInterval = null;
+let isDropdownOpen = false;
 
 form.onsubmit = (e) => {
-  e.preventDefault();
-};
+  e.preventDefault(); // prevent full page reload
 
-sendBtn.onclick = () => {
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "php/insert-chat.php", true);
   xhr.onload = () => {
@@ -41,34 +43,38 @@ inputFile.addEventListener("change", () => {
   }
 });
 
+chatBox.onmouseenter = () => chatBox.classList.add("active");
+chatBox.onmouseleave = () => chatBox.classList.remove("active");
 
-chatBox.onmouseenter = () => {
-  chatBox.classList.add("active");
-};
-chatBox.onmouseleave = () => {
-  chatBox.classList.remove("active");
-};
+function startChatInterval() {
+  if (!chatRefreshInterval) {
+    chatRefreshInterval = setInterval(loadChatMessages, 500);
+  }
+}
 
-setInterval(() => {
-  if (isEditingMessage) return;
+function stopChatInterval() {
+  clearInterval(chatRefreshInterval);
+  chatRefreshInterval = null;
+}
+
+function loadChatMessages() {
+  if (isEditingMessage || isDropdownOpen) return;
 
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "php/get-chat.php", true);
   xhr.onload = () => {
-    if (xhr.readyState === XMLHttpRequest.DONE) {
-      if (xhr.status === 200) {
-        let data = xhr.response;
-        chatBox.innerHTML = data;
-        lazyLoadImages();
-        if (!chatBox.classList.contains("active")) {
-          scrollToBottom();
-        }
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+      chatBox.innerHTML = xhr.response;
+      lazyLoadImages();
+      if (!chatBox.classList.contains("active")) {
+        scrollToBottom();
       }
     }
   };
-  let formData = new FormData(form);
-  xhr.send(formData);
-}, 500);
+  xhr.send(new FormData(form));
+}
+
+startChatInterval();
 
 function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -79,9 +85,7 @@ let typingTimer;
 messageInput.addEventListener("input", () => {
   clearTimeout(typingTimer);
   updateTypingStatus(true);
-  typingTimer = setTimeout(() => {
-    updateTypingStatus(false);
-  }, 2000);
+  typingTimer = setTimeout(() => updateTypingStatus(false), 2000);
 });
 
 function updateTypingStatus(isTyping) {
@@ -91,18 +95,19 @@ function updateTypingStatus(isTyping) {
   xhr.send("typing_to=" + (isTyping ? incomming_id : ""));
 }
 
+// DELETE MESSAGE
 let selectedMsgId = null;
 document.addEventListener("click", function (e) {
-  const modal = document.getElementById("deleteModal");
+  const deletemodal = document.getElementById("deleteModal");
 
   if (e.target.classList.contains("delete-msg")) {
     const msgDiv = e.target.closest(".details");
     selectedMsgId = msgDiv?.getAttribute("data-id");
-    modal.classList.remove("hidden");
+    deletemodal.classList.remove("hidden");
   }
 
   if (e.target.classList.contains("modal-cancel") || e.target.id === "deleteModal") {
-    modal.classList.add("hidden");
+    deletemodal.classList.add("hidden");
     selectedMsgId = null;
   }
 
@@ -123,12 +128,13 @@ document.addEventListener("click", function (e) {
             msgDiv.parentElement.remove();
           }
         }
-        modal.classList.add("hidden");
+        deletemodal.classList.add("hidden");
         selectedMsgId = null;
       });
   }
 });
 
+// LAZY IMAGE LOADING
 function lazyLoadImages() {
   const lazyImages = document.querySelectorAll('img[loading="lazy"]:not(.loaded)');
   lazyImages.forEach(img => {
@@ -141,18 +147,16 @@ function lazyLoadImages() {
     }
   });
 }
-document.addEventListener("DOMContentLoaded", () => {
-  lazyLoadImages();
-});
+document.addEventListener("DOMContentLoaded", lazyLoadImages);
 
-let images = [];
-let currentIndex = -1;
+// IMAGE MODAL + NAVIGATION
+let images = [], currentIndex = -1;
 
-const modal = document.getElementById("imageModal");
-const modalImg = document.getElementById("enlargedImage");
-const downloadBtn = document.getElementById("downloadImage");
-const prevBtn = document.getElementById("prevImage");
-const nextBtn = document.getElementById("nextImage");
+const modal = document.getElementById("imageModal"),
+  modalImg = document.getElementById("enlargedImage"),
+  downloadBtn = document.getElementById("downloadImage"),
+  prevBtn = document.getElementById("prevImage"),
+  nextBtn = document.getElementById("nextImage");
 
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("chat-image")) {
@@ -167,11 +171,16 @@ function openImage(img) {
   modal.classList.remove("hidden");
   modalImg.src = src;
   downloadBtn.href = src;
+  downloadBtn.href = src;
+  const filename = src.split("/").pop();
+  downloadBtn.setAttribute("download", filename);
+
   updateNavButtons();
+
 }
 
 function showImage(direction) {
-  if (images.length === 0) return;
+  if (!images.length) return;
   const newIndex = currentIndex + direction;
   if (newIndex < 0 || newIndex >= images.length) return;
   currentIndex = newIndex;
@@ -202,28 +211,31 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// edit message
+// EDIT MESSAGE
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("edit-msg")) {
+    if (currentlyEditingId) return;
     isEditingMessage = true;
+    stopChatInterval();
 
     const msgDiv = e.target.closest(".details");
     const msgId = msgDiv.getAttribute("data-id");
     const p = msgDiv.querySelector("p");
     const originalText = p.textContent.replace(" (bewerkt)", "").trim();
+    currentlyEditingId = msgId;
 
-    // Create inline input
     const input = document.createElement("input");
     input.type = "text";
     input.className = "edit-inline-input";
     input.value = originalText;
     input.setAttribute("data-original", originalText);
-    e.target.remove(); // remove edit icon
+    e.target.remove();
 
-    p.replaceWith(input);
-    input.focus();
+    requestAnimationFrame(() => {
+      p.replaceWith(input);
+      input.focus();
+    });
 
-    // Handle Enter = Save
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         const newText = input.value.trim();
@@ -240,25 +252,22 @@ document.addEventListener("click", (e) => {
                 newP.innerHTML = newText + ' <small>(bewerkt)</small>';
                 input.replaceWith(newP);
                 isEditingMessage = false;
+                currentlyEditingId = null;
+                startChatInterval();
               }
             });
         } else {
-          // no changes, cancel
           cancelEdit(input, originalText);
         }
       }
-
       if (event.key === "Escape") {
         cancelEdit(input, originalText);
       }
     });
 
-    // Click outside = cancel
-
     setTimeout(() => {
-      document.addEventListener("click", function clickOutside(event) {
-        // Only cancel if user clicks outside the .details container
-        if (!msgDiv.contains(event.target)) {
+      document.addEventListener("click", function clickOutside(ev) {
+        if (!msgDiv.contains(ev.target)) {
           cancelEdit(input, originalText);
           document.removeEventListener("click", clickOutside);
         }
@@ -272,4 +281,142 @@ function cancelEdit(input, originalText) {
   newP.textContent = originalText;
   input.replaceWith(newP);
   isEditingMessage = false;
+  currentlyEditingId = null;
+  startChatInterval();
 }
+
+// dropdown toggle
+document.addEventListener("click", function (e) {
+  const isMenuTrigger = e.target.classList.contains("menu-trigger");
+  const isEditOption = e.target.classList.contains("edit-option");
+  const isDeleteOption = e.target.classList.contains("delete-option");
+
+  // Toggle dropdown
+  if (isMenuTrigger) {
+    e.stopPropagation();
+    const container = e.target.closest(".dropdown-container");
+    const menu = container.querySelector(".dropdown-menu");
+
+    // Close all others
+    document.querySelectorAll(".dropdown-menu").forEach((m) => {
+      if (m !== menu) m.classList.add("hidden");
+    });
+
+    menu.classList.toggle("hidden");
+    isDropdownOpen = !menu.classList.contains("hidden");
+    return;
+  }
+
+  // Edit clicked
+  if (isEditOption) {
+    const msgDiv = e.target.closest(".details");
+    const msgId = msgDiv.getAttribute("data-id");
+    const p = msgDiv.querySelector("p");
+    const originalText = p.textContent.replace(" (bewerkt)", "").trim();
+    currentlyEditingId = msgId;
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "edit-inline-input";
+    input.value = originalText;
+    input.setAttribute("data-original", originalText);
+
+    p.replaceWith(input);
+    input.focus();
+
+    isEditingMessage = true;
+    stopChatInterval();
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        const newText = input.value.trim();
+        if (newText && newText !== originalText) {
+          fetch("php/edit_msg.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `msg_id=${msgId}&new_msg=${encodeURIComponent(newText)}`
+          })
+            .then(res => res.text())
+            .then(response => {
+              if (response === "success") {
+                const newP = document.createElement("p");
+                newP.innerHTML = newText + ' <small>(bewerkt)</small>';
+                input.replaceWith(newP);
+                isEditingMessage = false;
+                currentlyEditingId = null;
+                startChatInterval();
+              }
+            });
+        } else {
+          cancelEdit(input, originalText);
+        }
+      }
+
+      if (event.key === "Escape") {
+        cancelEdit(input, originalText);
+      }
+    });
+
+    setTimeout(() => {
+      document.addEventListener("click", function clickOutside(ev) {
+        if (!msgDiv.contains(ev.target)) {
+          cancelEdit(input, originalText);
+          document.removeEventListener("click", clickOutside);
+        }
+      }, { once: true });
+    }, 0);
+
+    document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.add("hidden"));
+    isDropdownOpen = false;
+    return;
+  }
+
+  // Delete clicked
+  if (isDeleteOption) {
+    const msgDiv = e.target.closest(".details");
+    selectedMsgId = msgDiv.getAttribute("data-id");
+    document.getElementById("deleteModal").classList.remove("hidden");
+
+    document.querySelectorAll(".dropdown-menu").forEach(m => m.classList.add("hidden"));
+    isDropdownOpen = false;
+    return;
+  }
+
+  // Click outside
+  document.querySelectorAll(".dropdown-menu").forEach((menu) => {
+    menu.classList.add("hidden");
+  });
+  isDropdownOpen = false;
+});
+
+
+// emoticon picker
+
+const emojiBtn = document.getElementById('emoji-btn');
+const emojiPickerDiv = document.getElementById('emoji-picker');
+
+let picker;
+
+emojiBtn.addEventListener('click', () => {
+  // Lazy init
+  if (!picker) {
+    picker = new EmojiMart.Picker({
+      onEmojiSelect: (emoji) => {
+        inputField.value += emoji.native;
+        inputField.dispatchEvent(new Event("input", { bubbles: true })); 
+        emojiPickerDiv.style.display = 'none'; 
+      },
+    });
+    emojiPickerDiv.appendChild(picker);
+  }
+
+  emojiPickerDiv.style.display = emojiPickerDiv.style.display === 'none' ? 'block' : 'none';
+});
+
+// Optional: Hide picker if clicking elsewhere
+document.addEventListener('click', (e) => {
+  if (!emojiPickerDiv.contains(e.target) && e.target !== emojiBtn) {
+    emojiPickerDiv.style.display = 'none';
+  }
+});
+

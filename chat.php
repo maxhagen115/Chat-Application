@@ -1,3 +1,10 @@
+<head>
+  <!-- ✅ Emoji Mart CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/browser.css" />
+
+  <!-- ✅ Emoji Mart JS -->
+  <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/browser.js"></script>
+</head>
 <?php
 session_start();
 if (!isset($_SESSION['unique_id'])) {
@@ -72,11 +79,15 @@ if (!isset($_SESSION['unique_id'])) {
       <form action="#" class="typing-area" autocomplete="off" enctype="multipart/form-data">
         <input type="text" name="outgoing_id" value="<?= $_SESSION['unique_id']; ?>" hidden>
         <input type="text" name="incomming_id" value="<?= $user_id; ?>" hidden>
-        <label for="picture">
+        <label for="picture" style="cursor: pointer;">
           <i class="fa fa-plus-circle fa-2x" aria-hidden="true"></i>
         </label>
         <input type="file" id="picture" name="picture" class="input-file">
         <label class="file-name" id="file-name"></label>
+        <div class="emoji-picker-container">
+          <button id="emoji-btn" type="button">😊</button>
+        </div>
+        <div id="emoji-picker" style="position: absolute; bottom: 60px; right: 20px; display: none; z-index: 1000;"></div>
         <input type="text" id="msg" name="message" class="input-field" placeholder="Typ een bericht hier...">
         <button name="test" id="test"><i class="fab fa-telegram-plane"></i></button>
       </form>
@@ -90,21 +101,21 @@ if (!isset($_SESSION['unique_id'])) {
   </div>
 
   <div id="imageModal" class="image-modal hidden">
-  <div class="image-wrapper">
-    <img id="enlargedImage" src="" alt="Chat Image" />
-    
-    <!-- Navigation arrows -->
-    <button id="prevImage" class="image-nav left">&#10094;</button>
-    <button id="nextImage" class="image-nav right">&#10095;</button>
+    <div class="image-wrapper">
+      <img id="enlargedImage" src="" alt="Chat Image" />
 
-    <!-- Download button -->
-    <a id="downloadImage" href="#" download class="download-btn" title="Download">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 16L8 12h3V4h2v8h3l-4 4zm-8 2v2h16v-2H4z" />
-      </svg>
-    </a>
+      <!-- Navigation arrows -->
+      <button id="prevImage" class="image-nav left">&#10094;</button>
+      <button id="nextImage" class="image-nav right">&#10095;</button>
+
+      <!-- Download button -->
+      <a id="downloadImage" href="#" download class="download-btn" title="Download" rel="noopener noreferrer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 16L8 12h3V4h2v8h3l-4 4zm-8 2v2h16v-2H4z" />
+        </svg>
+      </a>
+    </div>
   </div>
-</div>
 
 
   <div id="deleteModal" class="modal hidden">
@@ -176,30 +187,6 @@ if (!isset($_SESSION['unique_id'])) {
   }
 </script>
 
-<script>
-  const modal = document.getElementById("imageModal");
-  const modalImg = document.getElementById("enlargedImage");
-  const downloadBtn = document.getElementById("downloadImage");
-
-  // Open modal on any chat image click
-  document.addEventListener("click", function(e) {
-    if (e.target.classList.contains("chat-image")) {
-      const src = e.target.getAttribute("src");
-      modal.classList.remove("hidden");
-      modalImg.src = src;
-      downloadBtn.href = src;
-    }
-  });
-
-  // Close modal when clicking outside the image
-  modal.addEventListener("click", function(e) {
-    if (e.target === modal || e.target === modalImg) {
-      modal.classList.add("hidden");
-      modalImg.src = "";
-      downloadBtn.href = "#";
-    }
-  });
-</script>
 
 
 </html>

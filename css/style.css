@@ -469,6 +469,7 @@ body.active {
   position: relative;
   top: 120px;
   right: 80px;
+  z-index: 999;
 }
 
 .reset_img:hover {
@@ -710,23 +711,88 @@ img {
 }
 
 .edit-inline-input {
-  width: 100%;
-  padding: 6px 8px;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 18px 18px 0 18px;
+  padding: 8px 16px;
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  box-shadow: 0 0 32px rgba(0, 0, 0, 0.08), 0 16px 16px -16px rgba(0, 0, 0, 0.15);
   outline: none;
+  max-width: 100%;
+  width: auto;
 }
 
 .message-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  position: relative;
 }
 
-.message-wrap p {
+.dropdown-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: none;
+  z-index: 10;
+}
+
+.message-wrap:hover .dropdown-container {
+  display: block;
+}
+
+.menu-trigger {
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 16px;
+  color: white;
+  display: inline-block;
+  line-height: 1;
+  z-index: 10;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 20px;
+  background-color: #2e2e2e;
+  list-style: none;
+  padding: 5px 0;
   margin: 0;
-  flex-grow: 1;
-  word-break: break-word;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.dropdown-menu li {
+  padding: 6px 12px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.dropdown-menu li:hover {
+  background-color: #444;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Emoji button styling */
+#emoji-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: var(--primary-color);
+  transition: transform 0.2s ease;
+}
+
+#emoji-btn:hover {
+  transform: scale(1.2);
+}
+
+.emoji-picker-container {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
 }

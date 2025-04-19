@@ -57,11 +57,6 @@ if (isset($_SESSION['unique_id'])) {
 
             $output .= '<div class="details" data-id="' . $row['msg_id'] . '">';
 
-            // 🗑️ Delete icon for sender only if not deleted
-            if ($isSender && $row['deleted'] === 'none') {
-                $output .= '<span class="delete-msg" title="Verwijder"><i class="fas fa-trash-alt"></i></span>';
-            }
-
             // ❕ Show placeholder if deleted for both
             if ($row['deleted'] === 'both') {
                 $output .= '<div><p><em>Dit bericht is verwijderd</em></p></div>';
@@ -72,19 +67,26 @@ if (isset($_SESSION['unique_id'])) {
                 } elseif ($msg && !$pic) {
                     // Text only message
                     $output .= '<div class="message-wrap">';
-
                     $output .= '<p>' . $dec;
                     if ($row['edited']) {
                         $output .= ' <small>(bewerkt)</small>';
                     }
                     $output .= '</p>';
                     
+                    // dropdown trigger and menu
                     if ($isSender && $row['deleted'] === 'none') {
-                        $output .= '<span class="edit-msg" title="Bewerk">✏️</span>';
+                        $output .= '
+                        <div class="dropdown-container">
+                            <span class="menu-trigger">⋮</span>
+                            <ul class="dropdown-menu hidden">
+                                <li class="edit-option">Bewerk</li>
+                                <li class="delete-option">Verwijder</li>
+                            </ul>
+                        </div>';
                     }
                     
                     $output .= '</div>'; // .message-wrap
-                    
+
                 }
             }
 
