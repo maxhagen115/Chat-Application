@@ -639,7 +639,7 @@ body.active {
   width: 300px;
   border-radius: 10px;
   text-align: center;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
 }
 
 .modal-title {
@@ -692,5 +692,41 @@ img[loading="lazy"].loaded {
 }
 
 img {
-  opacity: 1; /* fallback */
+  opacity: 1;
+  /* fallback */
+}
+
+/* edit message */
+
+.details .edit-msg {
+  display: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #888;
+}
+
+.details:hover .edit-msg {
+  display: inline-block;
+}
+
+.edit-inline-input {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+}
+
+.message-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.message-wrap p {
+  margin: 0;
+  flex-grow: 1;
+  word-break: break-word;
 }

@@ -67,9 +67,24 @@ if (isset($_SESSION['unique_id'])) {
                 $output .= '<div><p><em>Dit bericht is verwijderd</em></p></div>';
             } else {
                 if ($pic && !$msg) {
-                    $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image" loading="lazy"></div>';
+                    // Image only message
+                    $output .= '<div><img src="php/images/user_msg_img/' . $pic . '" class="chat-image"></div>';
                 } elseif ($msg && !$pic) {
-                    $output .= '<div><p>' . $dec . '</p></div>';
+                    // Text only message
+                    $output .= '<div class="message-wrap">';
+
+                    $output .= '<p>' . $dec;
+                    if ($row['edited']) {
+                        $output .= ' <small>(bewerkt)</small>';
+                    }
+                    $output .= '</p>';
+                    
+                    if ($isSender && $row['deleted'] === 'none') {
+                        $output .= '<span class="edit-msg" title="Bewerk">✏️</span>';
+                    }
+                    
+                    $output .= '</div>'; // .message-wrap
+                    
                 }
             }
 

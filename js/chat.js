@@ -5,6 +5,7 @@ const form = document.querySelector(".typing-area"),
   chatBox = document.querySelector(".chat-box"),
   msg = document.getElementById("msg"),
   file_name = document.querySelector("#file-name");
+let isEditingMessage = false;
 
 form.onsubmit = (e) => {
   e.preventDefault();
@@ -14,17 +15,32 @@ sendBtn.onclick = () => {
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "php/insert-chat.php", true);
   xhr.onload = () => {
-    if (xhr.readyState === XMLHttpRequest.DONE) {
-      if (xhr.status === 200) {
-        inputField.value = "";
-        msg.style.display = "block";
-        file_name.remove();
-      }
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+      inputField.value = "";
+      inputFile.value = "";
+      file_name.textContent = "";
+      file_name.style.display = "none";
+      msg.style.display = "block";
     }
   };
-  let formData = new FormData(form);
-  xhr.send(formData);
+  xhr.send(new FormData(form));
 };
+
+
+inputFile.addEventListener("change", () => {
+  const file = inputFile.files[0];
+  if (file) {
+    const name = file.name.length > 20 ? file.name.slice(0, 17) + "..." : file.name;
+    file_name.textContent = name;
+    file_name.style.display = "inline";
+    msg.style.display = "none";
+  } else {
+    file_name.textContent = "";
+    file_name.style.display = "none";
+    msg.style.display = "block";
+  }
+});
+
 
 chatBox.onmouseenter = () => {
   chatBox.classList.add("active");
@@ -34,6 +50,8 @@ chatBox.onmouseleave = () => {
 };
 
 setInterval(() => {
+  if (isEditingMessage) return;
+
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "php/get-chat.php", true);
   xhr.onload = () => {
@@ -41,10 +59,7 @@ setInterval(() => {
       if (xhr.status === 200) {
         let data = xhr.response;
         chatBox.innerHTML = data;
-
-        // ✅ Run lazy loader AFTER content is replaced
         lazyLoadImages();
-
         if (!chatBox.classList.contains("active")) {
           scrollToBottom();
         }
@@ -59,15 +74,11 @@ function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// user is typing
 const messageInput = document.querySelector("#msg");
-
 let typingTimer;
-
 messageInput.addEventListener("input", () => {
   clearTimeout(typingTimer);
   updateTypingStatus(true);
-
   typingTimer = setTimeout(() => {
     updateTypingStatus(false);
   }, 2000);
@@ -80,10 +91,7 @@ function updateTypingStatus(isTyping) {
   xhr.send("typing_to=" + (isTyping ? incomming_id : ""));
 }
 
-// modal for delete message
-
 let selectedMsgId = null;
-
 document.addEventListener("click", function (e) {
   const modal = document.getElementById("deleteModal");
 
@@ -100,7 +108,6 @@ document.addEventListener("click", function (e) {
 
   if (e.target.classList.contains("modal-btn")) {
     const deleteFor = e.target.getAttribute("data-action");
-
     fetch("php/delete_msg.php", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -116,14 +123,12 @@ document.addEventListener("click", function (e) {
             msgDiv.parentElement.remove();
           }
         }
-
         modal.classList.add("hidden");
         selectedMsgId = null;
       });
   }
 });
 
-// ✅ Lazy loading images (only after they load or complete)
 function lazyLoadImages() {
   const lazyImages = document.querySelectorAll('img[loading="lazy"]:not(.loaded)');
   lazyImages.forEach(img => {
@@ -136,15 +141,11 @@ function lazyLoadImages() {
     }
   });
 }
-
-// ✅ Run once on initial load
 document.addEventListener("DOMContentLoaded", () => {
   lazyLoadImages();
 });
 
-// images navigation
-
-let images = []; // all chat images
+let images = [];
 let currentIndex = -1;
 
 const modal = document.getElementById("imageModal");
@@ -153,7 +154,6 @@ const downloadBtn = document.getElementById("downloadImage");
 const prevBtn = document.getElementById("prevImage");
 const nextBtn = document.getElementById("nextImage");
 
-// Open modal and store index
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("chat-image")) {
     images = Array.from(document.querySelectorAll(".chat-image"));
@@ -167,24 +167,18 @@ function openImage(img) {
   modal.classList.remove("hidden");
   modalImg.src = src;
   downloadBtn.href = src;
-
   updateNavButtons();
 }
 
 function showImage(direction) {
   if (images.length === 0) return;
-
   const newIndex = currentIndex + direction;
-
-  // Stop navigation if out of bounds
   if (newIndex < 0 || newIndex >= images.length) return;
-
   currentIndex = newIndex;
   openImage(images[currentIndex]);
 }
 
 function updateNavButtons() {
-  // Disable or hide nav buttons if at bounds
   prevBtn.style.display = currentIndex <= 0 ? "none" : "block";
   nextBtn.style.display = currentIndex >= images.length - 1 ? "none" : "block";
 }
@@ -192,7 +186,6 @@ function updateNavButtons() {
 prevBtn.addEventListener("click", () => showImage(-1));
 nextBtn.addEventListener("click", () => showImage(1));
 
-// Close on outside click or ESC
 modal.addEventListener("click", (e) => {
   if (e.target === modal) {
     modal.classList.add("hidden");
@@ -208,3 +201,75 @@ document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") modal.classList.add("hidden");
   }
 });
+
+// edit message
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("edit-msg")) {
+    isEditingMessage = true;
+
+    const msgDiv = e.target.closest(".details");
+    const msgId = msgDiv.getAttribute("data-id");
+    const p = msgDiv.querySelector("p");
+    const originalText = p.textContent.replace(" (bewerkt)", "").trim();
+
+    // Create inline input
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "edit-inline-input";
+    input.value = originalText;
+    input.setAttribute("data-original", originalText);
+    e.target.remove(); // remove edit icon
+
+    p.replaceWith(input);
+    input.focus();
+
+    // Handle Enter = Save
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        const newText = input.value.trim();
+        if (newText && newText !== originalText) {
+          fetch("php/edit_msg.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: `msg_id=${msgId}&new_msg=${encodeURIComponent(newText)}`
+          })
+            .then(res => res.text())
+            .then(response => {
+              if (response === "success") {
+                const newP = document.createElement("p");
+                newP.innerHTML = newText + ' <small>(bewerkt)</small>';
+                input.replaceWith(newP);
+                isEditingMessage = false;
+              }
+            });
+        } else {
+          // no changes, cancel
+          cancelEdit(input, originalText);
+        }
+      }
+
+      if (event.key === "Escape") {
+        cancelEdit(input, originalText);
+      }
+    });
+
+    // Click outside = cancel
+
+    setTimeout(() => {
+      document.addEventListener("click", function clickOutside(event) {
+        // Only cancel if user clicks outside the .details container
+        if (!msgDiv.contains(event.target)) {
+          cancelEdit(input, originalText);
+          document.removeEventListener("click", clickOutside);
+        }
+      }, { once: true });
+    }, 0);
+  }
+});
+
+function cancelEdit(input, originalText) {
+  const newP = document.createElement("p");
+  newP.textContent = originalText;
+  input.replaceWith(newP);
+  isEditingMessage = false;
+}
