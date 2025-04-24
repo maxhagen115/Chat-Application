@@ -758,7 +758,7 @@ img {
   padding: 5px 0;
   margin: 0;
   border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .dropdown-menu li {
@@ -795,4 +795,42 @@ img {
   display: flex;
   align-items: center;
   margin-right: 8px;
+}
+
+/* reactions */
+
+.message-wrap {
+  position: relative; /* REQUIRED for absolute children like .reaction-bar */
+}
+
+.reaction-bar {
+  position: absolute;
+  bottom: 100%;
+  left: 10px;
+  /* Adjust position to visually fit your design */
+  background: #2e2e2e;
+  padding: 4px 8px;
+  border-radius: 20px;
+  display: flex;
+  gap: 5px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.message-wrap:hover .reaction-bar,
+.reaction-bar:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.react-emoji {
+  cursor: pointer;
+  font-size: 18px;
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.react-emoji:hover {
+  transform: scale(1.3);
 }

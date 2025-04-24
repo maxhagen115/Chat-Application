@@ -58,7 +58,7 @@ function stopChatInterval() {
 }
 
 function loadChatMessages() {
-  if (isEditingMessage || isDropdownOpen) return;
+  if (isEditingMessage || isDropdownOpen || chatBox.classList.contains('hovering-reactions')) return;
 
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "php/get-chat.php", true);
@@ -74,7 +74,20 @@ function loadChatMessages() {
   xhr.send(new FormData(form));
 }
 
+chatBox.addEventListener('mouseover', (e) => {
+  if (e.target.closest('.reaction-bar') || e.target.closest('.message-wrap')) {
+    chatBox.classList.add('hovering-reactions');
+  }
+});
+
+chatBox.addEventListener('mouseout', (e) => {
+  if (e.target.closest('.reaction-bar') || e.target.closest('.message-wrap')) {
+    chatBox.classList.remove('hovering-reactions');
+  }
+});
+
 startChatInterval();
+
 
 function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -403,8 +416,8 @@ emojiBtn.addEventListener('click', () => {
     picker = new EmojiMart.Picker({
       onEmojiSelect: (emoji) => {
         inputField.value += emoji.native;
-        inputField.dispatchEvent(new Event("input", { bubbles: true })); 
-        emojiPickerDiv.style.display = 'none'; 
+        inputField.dispatchEvent(new Event("input", { bubbles: true }));
+        emojiPickerDiv.style.display = 'none';
       },
     });
     emojiPickerDiv.appendChild(picker);
@@ -413,10 +426,26 @@ emojiBtn.addEventListener('click', () => {
   emojiPickerDiv.style.display = emojiPickerDiv.style.display === 'none' ? 'block' : 'none';
 });
 
-// Optional: Hide picker if clicking elsewhere
 document.addEventListener('click', (e) => {
   if (!emojiPickerDiv.contains(e.target) && e.target !== emojiBtn) {
     emojiPickerDiv.style.display = 'none';
   }
 });
 
+// reaction emoji
+
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('react-emoji')) {
+    const emoji = e.target.getAttribute('data-emoji');
+    const msgId = e.target.closest('.message-wrap').closest('.details').getAttribute('data-id');
+
+    fetch('php/add_reaction.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `msg_id=${msgId}&emoji=${emoji}`
+    })
+    .then(() => {
+      loadChatMessages(); 
+    });
+  }
+});
