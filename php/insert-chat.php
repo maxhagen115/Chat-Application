@@ -5,13 +5,9 @@ $key = 'qkwjdiw239&&jdafweihbrhnan&^%$ggdnawhd4njshjwuuO';
 
 function encryptthis($data, $key)
 {
-
     $encryption_key = base64_decode($key);
-
     $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
-
     $encrypted = openssl_encrypt($data, 'aes-256-cbc', $encryption_key, 0, $iv);
-
     return base64_encode($encrypted . '::' . $iv);
 }
 
@@ -20,7 +16,6 @@ if (isset($_SESSION['unique_id'])) {
     include_once "config.php";
 
     $unique_id = $_SESSION['unique_id'];
-
     $outgoing_id = mysqli_real_escape_string($conn, $_POST['outgoing_id']);
     $incomming_id = mysqli_real_escape_string($conn, $_POST['incomming_id']);
     $message = mysqli_real_escape_string($conn, $_POST['message']);
@@ -31,6 +26,9 @@ if (isset($_SESSION['unique_id'])) {
     if (!empty($message)) {
         $sql = mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg)
                                     VALUES ({$incomming_id}, {$outgoing_id}, '{$enc}')") or die();
+
+        // 🔥 Update user status to 'Actief' and refresh last_online
+        mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$outgoing_id}");
     }
 
     $pic = $_FILES['picture'];
@@ -55,14 +53,17 @@ if (isset($_SESSION['unique_id'])) {
 
                     $sql = mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg_img)
                                                 VALUES ({$incomming_id}, {$outgoing_id}, '{$new_img_name}')") or die();
-                }else{
+
+                    // 🔥 Update user status to 'Actief' and refresh last_online
+                    mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$outgoing_id}");
+                } else {
                     $_SESSION['melding'] = "Alleen foto bestand selecteren";
                 }
-            }else{
-                
+            } else {
+                // Optional: handle large file error
             }
         }
     }
 } else {
-    header("../login.php");
+    header("location: ../login.php");
 }

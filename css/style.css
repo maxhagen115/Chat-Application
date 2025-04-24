@@ -31,6 +31,54 @@ body {
     0 32px 64px -48px rgba(0, 0, 0, 0.5);
 }
 
+/* dark mode */
+/* Chat box dark mode */
+body.active .wrapper {
+  background: #444; /* Dark background */
+  color: #eee;       /* Light text */
+  box-shadow: 0 0 10px rgba(0,0,0,0.6);
+}
+
+/* Chat messages */
+body.active .chat-box {
+  background: #555;
+  color: #eee;
+}
+
+/* Message bubbles */
+body.active .chat.outgoing .details, 
+body.active .chat.incoming .details {
+  background: #666;
+  color: #fff;
+}
+
+/* Input fields */
+body.active .input-field, 
+body.active .input-file {
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+}
+
+/* Buttons */
+body.active .button input[type="submit"], 
+body.active .button button {
+  background: #222;
+  color: #eee;
+}
+
+/* Reaction bar & dropdown menu */
+body.active .reaction-bar,
+body.active .dropdown-menu {
+  background: #333;
+  color: #eee;
+}
+
+/* Optional: links */
+body.active a {
+  color: #aaccff;
+}
+
 /* login & signup page */
 
 .form {
@@ -137,6 +185,37 @@ body {
 .form .link a:hover {
   text-decoration: underline;
 }
+
+.field.image {
+  display: flex;
+  flex-direction: column;
+}
+
+.field.image input[type="file"] {
+  display: none;
+}
+
+.field.image label.custom-file-upload {
+  background-color: #2e2e2e;
+  color: #fff;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: background-color 0.2s ease;
+}
+
+.field.image label.custom-file-upload:hover {
+  background-color: #444;
+}
+
+#file-chosen {
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: #555;
+}
+
 
 /* Users page */
 

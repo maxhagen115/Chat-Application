@@ -39,12 +39,13 @@ if (!isset($_SESSION['unique_id'])) {
           <span><?= $row['fname'] . " " . $row['lname'] ?></span>
           <p id="typing-status">
             <?php
-            if ($row['status'] == 'Actief') {
+            $lastOnline = new DateTime($row['last_online']);
+            $now = new DateTime();
+            $interval = $now->getTimestamp() - $lastOnline->getTimestamp();
+
+            if ($row['status'] == 'Actief' && $interval < 10) { // Only "Actief" if seen in last 10 seconds
               echo "Actief";
             } else {
-              $lastOnline = new DateTime($row['last_online']);
-              $now = new DateTime();
-
               if ($lastOnline->format('Y-m-d') == $now->format('Y-m-d')) {
                 $seen = $lastOnline->format('H:i');
               } else {
@@ -59,8 +60,9 @@ if (!isset($_SESSION['unique_id'])) {
                 $seen = $formatter->format($lastOnline);
               }
 
-              echo "{$row['status']}. Voor het laatst gezien op {$seen}";
+              echo "Afwezig. Voor het laatst gezien op {$seen}";
             }
+
             ?>
           </p>
 

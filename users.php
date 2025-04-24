@@ -26,7 +26,6 @@ if (!isset($_SESSION['unique_id'])) {
           </div>
           <div class="details">
             <span><?= $row['fname'] . " " . $row['lname'] ?></span><br>
-            <a href="php/change_status.php" class="status"><?= $row['status'] ?></a>
           </div>
         </div>
         <a href="php/logout.php?logout_id=<?= $row['unique_id'] ?>" class="logout">Loguit</a>

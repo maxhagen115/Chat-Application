@@ -13,7 +13,8 @@ let isDropdownOpen = false;
 
 form.onsubmit = (e) => {
   e.preventDefault(); // prevent full page reload
-
+  updateUserActivity();
+  
   let xhr = new XMLHttpRequest();
   xhr.open("POST", "php/insert-chat.php", true);
   xhr.onload = () => {
@@ -88,6 +89,11 @@ chatBox.addEventListener('mouseout', (e) => {
 
 startChatInterval();
 
+setInterval(() => {
+  fetch('php/update_activity.php', {
+    method: 'POST'
+  });
+}, 10000);
 
 function scrollToBottom() {
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -98,6 +104,7 @@ let typingTimer;
 messageInput.addEventListener("input", () => {
   clearTimeout(typingTimer);
   updateTypingStatus(true);
+  updateUserActivity();
   typingTimer = setTimeout(() => updateTypingStatus(false), 2000);
 });
 
@@ -449,3 +456,9 @@ document.addEventListener('click', (e) => {
     });
   }
 });
+
+function updateUserActivity() {
+  fetch('php/update_activity.php', {
+    method: 'POST'
+  });
+}

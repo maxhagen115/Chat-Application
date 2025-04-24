@@ -4,8 +4,22 @@
 <script>
     const body = document.querySelector("body");
     const toggle = document.getElementById("toggle");
-    toggle.onclick = function() {
+
+    // ✅ Check localStorage on page load
+    if (localStorage.getItem("theme") === "dark") {
+        toggle.classList.add("active");
+        body.classList.add("active");
+    }
+
+    toggle.onclick = function () {
         toggle.classList.toggle("active");
         body.classList.toggle("active");
+
+        // ✅ Save theme preference
+        if (body.classList.contains("active")) {
+            localStorage.setItem("theme", "dark");
+        } else {
+            localStorage.setItem("theme", "light");
+        }
     };
 </script>
