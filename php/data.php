@@ -12,7 +12,6 @@ function decryptthis($data, $key)
 $output = "";
 
 while ($row = mysqli_fetch_assoc($sql)) {
-    // ✅ Get last message with this user
     $sql2 = "SELECT * FROM messages WHERE 
                 (incomming_msg_id = {$row['unique_id']} OR outgoing_msg_id = {$row['unique_id']}) 
                 AND (outgoing_msg_id = {$outgoing_id} OR incomming_msg_id = {$outgoing_id}) 
@@ -41,7 +40,6 @@ while ($row = mysqli_fetch_assoc($sql)) {
     ($row['status'] == "Afwezig") ? $offline = "offline" : $offline = "";
     ($outgoing_id == $row['unique_id']) ? $hid_me = "hide" : $hid_me = "";
 
-    // ✅ Check if this user has unread messages TO me
     $check_unread = mysqli_query($conn, "
         SELECT COUNT(*) as total_unread 
         FROM messages 

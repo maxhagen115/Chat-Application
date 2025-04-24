@@ -1,8 +1,6 @@
 <head>
-  <!-- ✅ Emoji Mart CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/browser.css" />
 
-  <!-- ✅ Emoji Mart JS -->
   <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.4.0/dist/browser.js"></script>
 </head>
 <?php
@@ -106,11 +104,9 @@ if (!isset($_SESSION['unique_id'])) {
     <div class="image-wrapper">
       <img id="enlargedImage" src="" alt="Chat Image" />
 
-      <!-- Navigation arrows -->
       <button id="prevImage" class="image-nav left">&#10094;</button>
       <button id="nextImage" class="image-nav right">&#10095;</button>
 
-      <!-- Download button -->
       <a id="downloadImage" href="#" download class="download-btn" title="Download" rel="noopener noreferrer">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
           <path d="M12 16L8 12h3V4h2v8h3l-4 4zm-8 2v2h16v-2H4z" />
@@ -143,7 +139,7 @@ if (!isset($_SESSION['unique_id'])) {
         }
       };
       xhr.send("user_id=" + incomming_id);
-    }, 1000); // Check every 1 second
+    }, 1000);
   </script>
 
   <script src="js/chat.js"></script>

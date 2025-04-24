@@ -12,7 +12,7 @@ let chatRefreshInterval = null;
 let isDropdownOpen = false;
 
 form.onsubmit = (e) => {
-  e.preventDefault(); // prevent full page reload
+  e.preventDefault();
   updateUserActivity();
   
   let xhr = new XMLHttpRequest();

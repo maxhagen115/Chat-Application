@@ -5,7 +5,6 @@ if (isset($_SESSION['unique_id'])) {
     $msg_id = mysqli_real_escape_string($conn, $_POST['msg_id']);
     $new_msg = mysqli_real_escape_string($conn, $_POST['new_msg']);
 
-    // Encrypt like in insert-chat.php
     $key = 'qkwjdiw239&&jdafweihbrhnan&^%$ggdnawhd4njshjwuuO';
     $encryption_key = base64_decode($key);
     $iv = openssl_random_pseudo_bytes(16);

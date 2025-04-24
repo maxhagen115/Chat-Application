@@ -27,7 +27,6 @@ if (isset($_SESSION['unique_id'])) {
         $sql = mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg)
                                     VALUES ({$incomming_id}, {$outgoing_id}, '{$enc}')") or die();
 
-        // 🔥 Update user status to 'Actief' and refresh last_online
         mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$outgoing_id}");
     }
 
@@ -54,13 +53,11 @@ if (isset($_SESSION['unique_id'])) {
                     $sql = mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg_img)
                                                 VALUES ({$incomming_id}, {$outgoing_id}, '{$new_img_name}')") or die();
 
-                    // 🔥 Update user status to 'Actief' and refresh last_online
                     mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$outgoing_id}");
                 } else {
                     $_SESSION['melding'] = "Alleen foto bestand selecteren";
                 }
             } else {
-                // Optional: handle large file error
             }
         }
     }

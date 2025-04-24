@@ -32,10 +32,9 @@ body {
 }
 
 /* dark mode */
-/* Chat box dark mode */
 body.active .wrapper {
-  background: #444; /* Dark background */
-  color: #eee;       /* Light text */
+  background: #444; 
+  color: #eee;       
   box-shadow: 0 0 10px rgba(0,0,0,0.6);
 }
 
@@ -74,7 +73,6 @@ body.active .dropdown-menu {
   color: #eee;
 }
 
-/* Optional: links */
 body.active a {
   color: #aaccff;
 }
@@ -773,7 +771,6 @@ img[loading="lazy"].loaded {
 
 img {
   opacity: 1;
-  /* fallback */
 }
 
 /* edit message */
@@ -879,14 +876,13 @@ img {
 /* reactions */
 
 .message-wrap {
-  position: relative; /* REQUIRED for absolute children like .reaction-bar */
+  position: relative;
 }
 
 .reaction-bar {
   position: absolute;
   bottom: 100%;
   left: 10px;
-  /* Adjust position to visually fit your design */
   background: #2e2e2e;
   padding: 4px 8px;
   border-radius: 20px;
