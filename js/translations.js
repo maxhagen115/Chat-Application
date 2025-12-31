@@ -28,7 +28,17 @@ const translations = {
     'users.logout': 'Loguit',
     'users.hide': 'Verberg',
     'demo.fname': 'Demo',
-    'demo.lname': 'Gebruiker'
+    'demo.lname': 'Gebruiker',
+    'chat.message.placeholder': 'Typ een bericht hier...',
+    'chat.status.active': 'Actief',
+    'chat.status.offline': 'Afwezig. Voor het laatst gezien op',
+    'chat.status.typing': 'Is aan het typen...',
+    'chat.delete.title': 'Bericht verwijderen',
+    'chat.delete.sender': 'Verwijder voor mij',
+    'chat.delete.both': 'Verwijder voor iedereen',
+    'chat.delete.cancel': 'Annuleren',
+    'chat.message.deleted': 'Dit bericht is verwijderd',
+    'chat.message.edited': '(bewerkt)'
   },
   en: {
     'header.title': 'Chat Application',
@@ -58,7 +68,17 @@ const translations = {
     'users.logout': 'Logout',
     'users.hide': 'Hide',
     'demo.fname': 'Demo',
-    'demo.lname': 'User'
+    'demo.lname': 'User',
+    'chat.message.placeholder': 'Type a message here...',
+    'chat.status.active': 'Active',
+    'chat.status.offline': 'Offline. Last seen on',
+    'chat.status.typing': 'Is typing...',
+    'chat.delete.title': 'Delete message',
+    'chat.delete.sender': 'Delete for me',
+    'chat.delete.both': 'Delete for everyone',
+    'chat.delete.cancel': 'Cancel',
+    'chat.message.deleted': 'This message is deleted',
+    'chat.message.edited': '(edited)'
   }
 };
 
@@ -94,6 +114,13 @@ function updateTranslations() {
     element.value = translate(key);
   });
 
+  // Update typing status if it exists
+  const typingStatus = document.getElementById('typing-status');
+  if (typingStatus && typingStatus.hasAttribute('data-i18n-status')) {
+    // The status is updated via AJAX, so we'll translate it when it updates
+    // This is handled in chat.php script
+  }
+
   // Update language switcher display
   const langDisplay = document.getElementById('lang-display');
   const langAlt = document.getElementById('lang-alt');
@@ -121,9 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
       currentLang = currentLang === 'nl' ? 'en' : 'nl';
       window.currentLang = currentLang;
       localStorage.setItem('language', currentLang);
+      // Store in cookie for PHP access
+      document.cookie = 'language=' + currentLang + '; path=/';
       updateTranslations();
+      // Dispatch event for other scripts to listen
+      document.dispatchEvent(new Event('languageChanged'));
     });
   }
+  
+  // Set initial cookie
+  document.cookie = 'language=' + currentLang + '; path=/';
 
   // Initial translation update
   updateTranslations();

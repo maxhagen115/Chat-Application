@@ -14,20 +14,50 @@ function encryptthis($data, $key)
 if (isset($_SESSION['unique_id'])) {
 
     include_once "config.php";
+    include_once "ai_user.php";
 
     $unique_id = $_SESSION['unique_id'];
-    $outgoing_id = mysqli_real_escape_string($conn, $_POST['outgoing_id']);
-    $incomming_id = mysqli_real_escape_string($conn, $_POST['incomming_id']);
-    $message = mysqli_real_escape_string($conn, $_POST['message']);
+    $outgoing_id = $_POST['outgoing_id'];
+    $incomming_id = $_POST['incomming_id'];
+    $message = isset($_POST['message']) ? $_POST['message'] : '';
 
-    $var = $_POST['message'];
+    // Escape IDs for SQL
+    $outgoing_id_escaped = mysqli_real_escape_string($conn, $outgoing_id);
+    $incomming_id_escaped = mysqli_real_escape_string($conn, $incomming_id);
+    
+    // Check if IDs are numeric
+    $is_numeric_outgoing = is_numeric($outgoing_id);
+    $is_numeric_incomming = is_numeric($incomming_id);
+    
+    // Build SQL values with proper quoting
+    $outgoing_sql = $is_numeric_outgoing ? $outgoing_id : "'{$outgoing_id_escaped}'";
+    $incomming_sql = $is_numeric_incomming ? $incomming_id : "'{$incomming_id_escaped}'";
+
+    $var = $message;
     $enc = encryptthis($var, $key);
 
     if (!empty($message)) {
         $sql = mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg)
-                                    VALUES ({$incomming_id}, {$outgoing_id}, '{$enc}')") or die();
+                                    VALUES ({$incomming_sql}, {$outgoing_sql}, '{$enc}')") or die();
 
-        mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$outgoing_id}");
+        // Update user status (skip for demo user)
+        if (!isset($_SESSION['demo_user']) || !$_SESSION['demo_user']) {
+            $update_sql = $is_numeric_outgoing ? $outgoing_id : "'{$outgoing_id_escaped}'";
+            mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$update_sql}");
+        }
+        
+        // Check if message is to AI user and auto-reply
+        if ($incomming_id == AI_USER_ID || (string)$incomming_id == (string)AI_USER_ID) {
+            // Get the original message for AI response
+            $decryptedMessage = $var;
+            $aiResponse = generateAIResponse($decryptedMessage);
+            $encryptedResponse = encryptthis($aiResponse, $key);
+            
+            // Insert AI response (AI sends message to user) - add small delay simulation
+            usleep(500000); // 0.5 second delay to simulate thinking
+            mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg)
+                                VALUES ({$outgoing_sql}, " . AI_USER_ID . ", '{$encryptedResponse}')") or die();
+        }
     }
 
     $pic = $_FILES['picture'];
@@ -51,9 +81,12 @@ if (isset($_SESSION['unique_id'])) {
                     move_uploaded_file($tmp_name, $img_upload_path);
 
                     $sql = mysqli_query($conn, "INSERT INTO messages (incomming_msg_id, outgoing_msg_id, msg_img)
-                                                VALUES ({$incomming_id}, {$outgoing_id}, '{$new_img_name}')") or die();
+                                                VALUES ({$incomming_sql}, {$outgoing_sql}, '{$new_img_name}')") or die();
 
-                    mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$outgoing_id}");
+                    if (!isset($_SESSION['demo_user']) || !$_SESSION['demo_user']) {
+                        $update_sql = $is_numeric_outgoing ? $outgoing_id : "'{$outgoing_id_escaped}'";
+                        mysqli_query($conn, "UPDATE users SET status = 'Actief', last_online = NOW() WHERE unique_id = {$update_sql}");
+                    }
                 } else {
                     $_SESSION['melding'] = "Alleen foto bestand selecteren";
                 }

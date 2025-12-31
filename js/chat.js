@@ -143,7 +143,8 @@ document.addEventListener("click", function (e) {
         if (response.trim() === "success") {
           const msgDiv = document.querySelector(`.details[data-id='${selectedMsgId}']`);
           if (deleteFor === "both") {
-            msgDiv.innerHTML = '<div><p><em>Dit bericht is verwijderd</em></p></div>';
+            const deletedText = window.translate ? window.translate('chat.message.deleted') : 'Dit bericht is verwijderd';
+            msgDiv.innerHTML = '<div><p><em>' + deletedText + '</em></p></div>';
           } else {
             msgDiv.parentElement.remove();
           }
@@ -241,7 +242,8 @@ document.addEventListener("click", (e) => {
     const msgDiv = e.target.closest(".details");
     const msgId = msgDiv.getAttribute("data-id");
     const p = msgDiv.querySelector("p");
-    const originalText = p.textContent.replace(" (bewerkt)", "").trim();
+    const editedText = window.translate ? window.translate('chat.message.edited') : ' (bewerkt)';
+    const originalText = p.textContent.replace(editedText, "").replace(" (bewerkt)", "").replace(" (edited)", "").trim();
     currentlyEditingId = msgId;
 
     const input = document.createElement("input");
@@ -269,7 +271,8 @@ document.addEventListener("click", (e) => {
             .then(response => {
               if (response === "success") {
                 const newP = document.createElement("p");
-                newP.innerHTML = newText + ' <small>(bewerkt)</small>';
+                const editedLabel = window.translate ? window.translate('chat.message.edited') : ' (bewerkt)';
+                newP.innerHTML = newText + ' <small>' + editedLabel + '</small>';
                 input.replaceWith(newP);
                 isEditingMessage = false;
                 currentlyEditingId = null;
@@ -332,7 +335,8 @@ document.addEventListener("click", function (e) {
     const msgDiv = e.target.closest(".details");
     const msgId = msgDiv.getAttribute("data-id");
     const p = msgDiv.querySelector("p");
-    const originalText = p.textContent.replace(" (bewerkt)", "").trim();
+    const editedText = window.translate ? window.translate('chat.message.edited') : ' (bewerkt)';
+    const originalText = p.textContent.replace(editedText, "").replace(" (bewerkt)", "").replace(" (edited)", "").trim();
     currentlyEditingId = msgId;
 
     const input = document.createElement("input");
@@ -360,7 +364,8 @@ document.addEventListener("click", function (e) {
             .then(response => {
               if (response === "success") {
                 const newP = document.createElement("p");
-                newP.innerHTML = newText + ' <small>(bewerkt)</small>';
+                const editedLabel = window.translate ? window.translate('chat.message.edited') : ' (bewerkt)';
+                newP.innerHTML = newText + ' <small>' + editedLabel + '</small>';
                 input.replaceWith(newP);
                 isEditingMessage = false;
                 currentlyEditingId = null;

@@ -541,7 +541,7 @@ body.active .profile-picture-overlay {
   cursor: pointer;
 }
 
-.chat-box .chat.incomming {
+.chat-box .chat.incoming {
   justify-content: flex-start;
 }
 
@@ -549,13 +549,13 @@ body.active .profile-picture-overlay {
   justify-content: flex-end;
 }
 
-.chat-box .chat.incomming .details p {
+.chat-box .chat.incoming .details p {
   background: #fff;
   color: var(--primary-color);
   border-radius: 18px 18px 18px 0px;
 }
 
-.chat-box .chat.incomming .details img {
+.chat-box .chat.incoming .details img {
   background: #fff;
   border-radius: 18px 18px 18px 0px;
 }
@@ -617,9 +617,9 @@ body.active {
 }
 
 .language-switch {
-  position: absolute;
-  top: 200px;
-  right: 500px;
+  position: relative;
+  top: -300px;
+  right: -700px;
   background: #f0f0f0;
   border: 1px solid #ddd;
   color: #333;
@@ -630,6 +630,14 @@ body.active {
   transition: all 0.3s ease;
   font-size: 14px;
   z-index: 1000;
+  white-space: nowrap;
+}
+
+
+@media (max-width: 1000px) {
+  .language-switch {
+    right: 20px;
+  }
 }
 
 .language-switch:hover {

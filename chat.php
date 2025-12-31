@@ -13,52 +13,73 @@ if (!isset($_SESSION['unique_id'])) {
 
 <?php include "header.php"; ?>
 <?php include "light_dark_switch.php"; ?>
+<?php include "language_switch.php"; ?>
 
-<body>
+<body class="chat-page">
   <div class="wrapper">
     <section class="chat-area">
       <header>
         <?php
         include_once "php/config.php";
+        include_once "php/ai_user.php";
         $user_id = mysqli_real_escape_string($conn, $_GET['user_id']);
-        $sql = mysqli_query($conn, "SELECT * FROM users WHERE unique_id = {$user_id}");
-        if (mysqli_num_rows($sql) > 0) {
-          $row = mysqli_fetch_assoc($sql);
+        
+        // Check if it's AI user (handle both string and numeric comparison)
+        if ($user_id == AI_USER_ID || $user_id == (string)AI_USER_ID) {
+          $row = getAIUser();
+          $row['unique_id'] = AI_USER_ID;
+          // Get language for AI name
+          $lang = isset($_SESSION['language']) ? $_SESSION['language'] : (isset($_COOKIE['language']) ? $_COOKIE['language'] : 'nl');
+          $row['fname'] = ($lang === 'en') ? 'AI' : 'AI';
+          $row['lname'] = ($lang === 'en') ? 'Chat' : 'Chat';
+        } else {
+          $sql = mysqli_query($conn, "SELECT * FROM users WHERE unique_id = {$user_id}");
+          if (mysqli_num_rows($sql) > 0) {
+            $row = mysqli_fetch_assoc($sql);
+          }
         }
         ?>
         <a href="users.php" class="back-icon"><i class="fas fa-arrow-left"></i></a>
 
-        <img class="profile-pic" onclick="enlargeImg()" id="profile_img" src="php/images/<?= $row['img'] ?> " />
+        <img class="profile-pic" onclick="enlargeImg()" id="profile_img" src="<?= ($user_id == AI_USER_ID) ? $row['img'] : 'php/images/' . $row['img'] ?> " />
         <div id="reset_btn" style="display:none;">
-          <button class="reset_img" onclick="resetImg()">Verberg</button>
+          <button class="reset_img" onclick="resetImg()" data-i18n="users.hide">Verberg</button>
         </div>
 
         <div class="details">
           <span><?= $row['fname'] . " " . $row['lname'] ?></span>
-          <p id="typing-status">
+          <p id="typing-status" data-i18n-status>
             <?php
-            $lastOnline = new DateTime($row['last_online']);
-            $now = new DateTime();
-            $interval = $now->getTimestamp() - $lastOnline->getTimestamp();
-
-            if ($row['status'] == 'Actief' && $interval < 10) { // Only "Actief" if seen in last 10 seconds
-              echo "Actief";
+            $lang = isset($_COOKIE['language']) ? $_COOKIE['language'] : 'nl';
+            if ($user_id == AI_USER_ID) {
+              // AI is always active
+              echo ($lang === 'en') ? 'Active' : 'Actief';
             } else {
-              if ($lastOnline->format('Y-m-d') == $now->format('Y-m-d')) {
-                $seen = $lastOnline->format('H:i');
-              } else {
-                $formatter = new IntlDateFormatter(
-                  'nl_NL',
-                  IntlDateFormatter::NONE,
-                  IntlDateFormatter::NONE,
-                  'Europe/Amsterdam',
-                  IntlDateFormatter::GREGORIAN,
-                  'd MMMM'
-                );
-                $seen = $formatter->format($lastOnline);
-              }
+              $lastOnline = new DateTime($row['last_online']);
+              $now = new DateTime();
+              $interval = $now->getTimestamp() - $lastOnline->getTimestamp();
 
-              echo "Afwezig. Voor het laatst gezien op {$seen}";
+              if ($row['status'] == 'Actief' && $interval < 10) { // Only "Actief" if seen in last 10 seconds
+                echo ($lang === 'en') ? 'Active' : 'Actief';
+              } else {
+                if ($lastOnline->format('Y-m-d') == $now->format('Y-m-d')) {
+                  $seen = $lastOnline->format('H:i');
+                } else {
+                  $locale = $lang === 'en' ? 'en_US' : 'nl_NL';
+                  $formatter = new IntlDateFormatter(
+                    $locale,
+                    IntlDateFormatter::NONE,
+                    IntlDateFormatter::NONE,
+                    'Europe/Amsterdam',
+                    IntlDateFormatter::GREGORIAN,
+                    'd MMMM'
+                  );
+                  $seen = $formatter->format($lastOnline);
+                }
+
+                $offlineText = ($lang === 'en') ? "Offline. Last seen on {$seen}" : "Afwezig. Voor het laatst gezien op {$seen}";
+                echo $offlineText;
+              }
             }
 
             ?>
@@ -88,7 +109,7 @@ if (!isset($_SESSION['unique_id'])) {
           <button id="emoji-btn" type="button">😊</button>
         </div>
         <div id="emoji-picker" style="position: absolute; bottom: 60px; right: 20px; display: none; z-index: 1000;"></div>
-        <input type="text" id="msg" name="message" class="input-field" placeholder="Typ een bericht hier...">
+        <input type="text" id="msg" name="message" class="input-field" data-i18n-placeholder="chat.message.placeholder" placeholder="Typ een bericht hier...">
         <button name="test" id="test"><i class="fab fa-telegram-plane"></i></button>
       </form>
     </section>
@@ -118,18 +139,24 @@ if (!isset($_SESSION['unique_id'])) {
 
   <div id="deleteModal" class="modal hidden">
     <div class="modal-content">
-      <p class="modal-title">Bericht verwijderen</p>
-      <button class="modal-btn" data-action="sender">Verwijder voor mij</button>
-      <button class="modal-btn" data-action="both">Verwijder voor iedereen</button>
-      <button class="modal-cancel">Annuleren</button>
+      <p class="modal-title" data-i18n="chat.delete.title">Bericht verwijderen</p>
+      <button class="modal-btn" data-action="sender" data-i18n="chat.delete.sender">Verwijder voor mij</button>
+      <button class="modal-btn" data-action="both" data-i18n="chat.delete.both">Verwijder voor iedereen</button>
+      <button class="modal-cancel" data-i18n="chat.delete.cancel">Annuleren</button>
     </div>
   </div>
 
+  <script src="js/translations.js"></script>
   <script>
     const typingStatus = document.getElementById("typing-status");
     const incomming_id = <?= $user_id ?>;
 
-    setInterval(() => {
+    // Status text is already translated by check_typing.php, so we just use it directly
+    function translateStatusText(text) {
+      return text; // Already translated by PHP
+    }
+
+    function updateTypingStatus() {
       let xhr = new XMLHttpRequest();
       xhr.open("POST", "php/check_typing.php", true);
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -139,7 +166,16 @@ if (!isset($_SESSION['unique_id'])) {
         }
       };
       xhr.send("user_id=" + incomming_id);
-    }, 1000);
+    }
+
+    // Update status immediately and then every second
+    updateTypingStatus();
+    setInterval(updateTypingStatus, 1000);
+
+    // Update status when language changes
+    document.addEventListener('languageChanged', () => {
+      updateTypingStatus();
+    });
   </script>
 
   <script src="js/chat.js"></script>
